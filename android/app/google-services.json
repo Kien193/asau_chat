@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "362037586492",
+    "project_id": "asau-chat-kien",
+    "storage_bucket": "asau-chat-kien.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362037586492:android:51788faf7c4bb37409f139",
+        "android_client_info": {
+          "package_name": "com.example.asau_chat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBci-0XfiHUkQDQLDu57-CMKTKZ5cjXzSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
