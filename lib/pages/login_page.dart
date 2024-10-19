@@ -1,4 +1,4 @@
-import 'package:asau_chat/auth/auth_service.dart';
+import 'package:asau_chat/services/auth/auth_service.dart';
 import 'package:asau_chat/components/custom_button.dart';
 import 'package:asau_chat/components/custom_textfield.dart';
 import 'package:flutter/material.dart';
