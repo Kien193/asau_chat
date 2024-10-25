@@ -1,31 +1,49 @@
-import 'package:asau_chat/auth/auth_service.dart';
+import 'package:asau_chat/services/auth/auth_service.dart';
 import 'package:asau_chat/components/custom_button.dart';
 import 'package:asau_chat/components/custom_textfield.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  final void Function()? onTap;
+
+  const LoginPage({super.key, required this.onTap});
+
+  @override
+  LoginPageState createState() => LoginPageState();
+}
+
+class LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  final void Function()? onTap;
-
-  LoginPage({super.key, required this.onTap});
-
-  void login(BuildContext context) async {
+  void login() async {
     final authService = AuthService();
     try {
       await authService.signInWithEmailPassword(
         _emailController.text,
         _passwordController.text,
       );
+      if (!mounted) return; // Ensure the widget is still mounted
+      showDialog(
+          context: context,
+          builder: (context) => const AlertDialog(
+            title: Text('Login Successful'),
+          ));
     } catch (e) {
+      if (!mounted) return; // Ensure the widget is still mounted before showing a dialog
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(e.toString()),
-          )
-      );
+          ));
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,7 +88,7 @@ class LoginPage extends StatelessWidget {
             ),
             CustomButton(
               text: 'Login',
-              onTap: () => login(context),
+              onTap: login,
             ),
             const SizedBox(
               height: 25,
@@ -81,10 +99,10 @@ class LoginPage extends StatelessWidget {
                 Text(
                   "Not a member? ",
                   style:
-                      TextStyle(color: Theme.of(context).colorScheme.primary),
+                  TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
                 GestureDetector(
-                  onTap: onTap,
+                  onTap: widget.onTap,
                   child: Text(
                     "Register now",
                     style: TextStyle(

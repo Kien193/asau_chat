@@ -1,5 +1,4 @@
-import 'package:asau_chat/auth/auth_gate.dart';
-//import 'package:asau_chat/auth/login_or_register.dart';
+import 'package:asau_chat/services/auth/auth_gate.dart';
 import 'package:asau_chat/firebase_options.dart';
 import 'package:asau_chat/themes/light_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
