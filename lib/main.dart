@@ -9,11 +9,11 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(const ASauChat());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ASauChat extends StatelessWidget {
+  const ASauChat({super.key});
 
   @override
   Widget build(BuildContext context) {
