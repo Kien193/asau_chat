@@ -15,27 +15,31 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  void login() async {
-    final authService = AuthService();
+  static const double spacingSmall = 10.0;
+  static const double spacingMedium = 25.0;
+  static const double spacingLarge = 50.0;
+
+  void _showDialog(String title) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+      ),
+    );
+  }
+
+  Future<void> _login() async {
     try {
-      await authService.signInWithEmailPassword(
+      await _authService.signInWithEmailPassword(
         _emailController.text,
         _passwordController.text,
       );
-      if (!mounted) return; // Ensure the widget is still mounted
-      showDialog(
-          context: context,
-          builder: (context) => const AlertDialog(
-            title: Text('Login Successful'),
-          ));
+      _showDialog('Login Successful');
     } catch (e) {
-      if (!mounted) return; // Ensure the widget is still mounted before showing a dialog
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(e.toString()),
-          ));
+      _showDialog(e.toString());
     }
   }
 
@@ -59,7 +63,7 @@ class LoginPageState extends State<LoginPage> {
               size: 60,
               color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: spacingLarge),
             Text(
               "Welcome back",
               style: TextStyle(
@@ -67,47 +71,41 @@ class LoginPageState extends State<LoginPage> {
                 fontSize: 16,
               ),
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             CustomTextField(
               hintText: 'Email',
               obscureText: false,
               controller: _emailController,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: spacingSmall),
             CustomTextField(
               hintText: 'Password',
               obscureText: true,
               controller: _passwordController,
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             CustomButton(
               text: 'Login',
-              onTap: login,
+              onTap: _login,
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   "Not a member? ",
-                  style:
-                  TextStyle(color: Theme.of(context).colorScheme.primary),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 GestureDetector(
                   onTap: widget.onTap,
                   child: Text(
                     "Register now",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ],
