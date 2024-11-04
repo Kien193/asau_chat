@@ -16,36 +16,36 @@ class RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPwController = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  void register() async {
-    final authService = AuthService();
-    if (_passwordController.text == _confirmPwController.text) {
-      try {
-        await authService.signUpWithEmailPassword(
-          _emailController.text,
-          _passwordController.text,
-        );
-        if (!mounted) return; // Ensure the widget is still mounted before using context
-        showDialog(
-            context: context,
-            builder: (context) => const AlertDialog(
-              title: Text('Registration Successful'),
-            ));
-      } catch (e) {
-        if (!mounted) return; // Check if the widget is still in the widget tree
-        showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(e.toString()),
-            ));
-      }
-    } else {
-      if (!mounted) return;
-      showDialog(
-          context: context,
-          builder: (context) => const AlertDialog(
-            title: Text("Passwords don't match"),
-          ));
+  static const double spacingSmall = 10.0;
+  static const double spacingMedium = 25.0;
+  static const double spacingLarge = 50.0;
+
+  void _showDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(message),
+      ),
+    );
+  }
+
+  Future<void> _register() async {
+    if (_passwordController.text != _confirmPwController.text) {
+      _showDialog("Passwords don't match");
+      return;
+    }
+
+    try {
+      await _authService.signUpWithEmailPassword(
+        _emailController.text,
+        _passwordController.text,
+      );
+      _showDialog('Registration Successful');
+    } catch (e) {
+      _showDialog(e.toString());
     }
   }
 
@@ -70,7 +70,7 @@ class RegisterPageState extends State<RegisterPage> {
               size: 60,
               color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: spacingLarge),
             Text(
               "Create an account",
               style: TextStyle(
@@ -78,59 +78,49 @@ class RegisterPageState extends State<RegisterPage> {
                 fontSize: 16,
               ),
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             CustomTextField(
               hintText: 'Email',
               obscureText: false,
               controller: _emailController,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: spacingSmall),
             CustomTextField(
               hintText: 'Password',
               obscureText: true,
               controller: _passwordController,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: spacingSmall),
             CustomTextField(
               hintText: 'Confirm Password',
               obscureText: true,
               controller: _confirmPwController,
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             CustomButton(
               text: 'Register',
-              onTap: register,
+              onTap: _register,
             ),
-            const SizedBox(
-              height: 25,
-            ),
+            const SizedBox(height: spacingMedium),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   "Already a member? ",
-                  style:
-                  TextStyle(color: Theme.of(context).colorScheme.primary),
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
                 GestureDetector(
                   onTap: widget.onTap,
                   child: Text(
                     "Login now",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

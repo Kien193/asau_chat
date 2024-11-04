@@ -14,8 +14,12 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Home"),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey,
+        elevation: 0,
       ),
       drawer: const CustomDrawer(),
       body: _buildUserList(),
@@ -23,39 +27,45 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildUserList() {
-    return StreamBuilder(
-        stream: _chatService.getUsersStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Text("Error");
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading...");
-          }
-          return ListView(
-            children: snapshot.data!
-                .map<Widget>(
-                    (userData) => _buildUserListItem(userData, context))
-                .toList(),
-          );
-        });
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _chatService.getUsersStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text("Error"));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final currentUserEmail = _authService.getCurrentUser()?.email;
+        final users = snapshot.data!
+            .where((userData) => userData["email"] != currentUserEmail)
+            .toList();
+
+        return ListView.builder(
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return _buildUserListItem(users[index], context);
+          },
+        );
+      },
+    );
   }
 
   Widget _buildUserListItem(Map<String, dynamic> userData, BuildContext context) {
-    if (userData["email"] != _authService.getCurrentUser()!.email) {
-      return CustomUserTile(
-        text: userData["email"],
-        onTap: () {
-          Navigator.push(context, MaterialPageRoute(
-              builder: (context) => ChatPage(
-                receiverEmail: userData["email"],
-                receiverID: userData["uid"],
-              )
-          ));
-        },
-      );
-    } else {
-      return Container();
-    }
+    return CustomUserTile(
+      text: userData["email"],
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatPage(
+              receiverEmail: userData["email"],
+              receiverID: userData["uid"],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
