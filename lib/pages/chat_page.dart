@@ -46,7 +46,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> scrollDown() async {
     await _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 800),
       curve: Curves.easeOut,
     );
   }
@@ -124,12 +124,12 @@ class _ChatPageState extends State<ChatPage> {
     final isCurrentUser = message.senderID == _authService.getCurrentUser()!.uid;
 
     // Format the timestamp
-    final formattedTime = DateFormat('hh:mm a').format(message.timestamp.toDate());
+    final formattedTime = DateFormat('dd MMMM yyyy hh:mm a').format(message.timestamp.toDate());
 
     return Container(
       margin: EdgeInsets.only(
-        left: isCurrentUser ? 50.0 : 10.0,
-        right: isCurrentUser ? 10.0 : 50.0,
+        left: isCurrentUser ? 50.0 : 0.0,
+        right: isCurrentUser ? 0.0 : 50.0,
         top: 5.0,
         bottom: 5.0,
       ),
@@ -162,7 +162,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildUserInput() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 50.0),
+      padding: const EdgeInsets.only(bottom: 30.0),
       child: Row(
         children: [
           Expanded(
@@ -174,7 +174,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           Container(
-            margin: const EdgeInsets.only(right: 15),
+            margin: const EdgeInsets.only(right: 30),
             decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
             child: IconButton(
               onPressed: sendMessage,

@@ -27,7 +27,9 @@ class RegisterPageState extends State<RegisterPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(message),
+        title: Center(
+          child: Text(message),
+        ),
       ),
     );
   }

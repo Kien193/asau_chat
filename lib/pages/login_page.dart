@@ -21,12 +21,14 @@ class LoginPageState extends State<LoginPage> {
   static const double spacingMedium = 25.0;
   static const double spacingLarge = 50.0;
 
-  void _showDialog(String title) {
+  void _showDialog(String message) {
     if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
+        title: Center(
+          child: Text(message),
+        ),
       ),
     );
   }
