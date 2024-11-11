@@ -19,13 +19,9 @@ class CustomDrawer extends StatelessWidget {
         children: [
           Column(
             children: [
-              DrawerHeader(
+              const DrawerHeader(
                   child: Center(
-                    child: Icon(
-                      Icons.message,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 40,
-                    ),
+                    child: Image(image: AssetImage('assets/images/asau_logo.png')),
                   ),
               ),
               Padding(
