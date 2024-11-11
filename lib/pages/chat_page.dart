@@ -3,10 +3,12 @@ import 'package:asau_chat/components/custom_textfield.dart';
 import 'package:asau_chat/services/auth/auth_service.dart';
 import 'package:asau_chat/services/chat/chat_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter/foundation.dart' as foundation;
 import '../models/message_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverEmail;
@@ -19,14 +21,22 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final TextEditingController _messagesController = TextEditingController();
-  final ChatService _chatService = ChatService();
-  final AuthService _authService = AuthService();
-  final FocusNode focusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
+  late final TextEditingController _messagesController;
+  late final ChatService _chatService;
+  late final AuthService _authService;
+  late final FocusNode focusNode;
+  late final ScrollController _scrollController;
+
+  bool _emojiShowing = false;
 
   @override
   void initState() {
+    _chatService = ChatService();
+    _authService = AuthService();
+    focusNode = FocusNode();
+    _scrollController = ScrollController();
+    _messagesController = TextEditingController();
+
     super.initState();
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
@@ -45,9 +55,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> scrollDown() async {
     await _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeOut,
+      _scrollController.position.maxScrollExtent * 1.5,
+      duration: const Duration(milliseconds: 2000),
+      curve: Curves.easeInOut,
     );
   }
 
@@ -88,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Text("Loading..."));
+          return const Center(child: CircularProgressIndicator()); //const Center(child: Text("Loading..."));
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -122,7 +132,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(Message message) {
     final isCurrentUser = message.senderID == _authService.getCurrentUser()!.uid;
-
+    final textStyle = DefaultEmojiTextStyle.copyWith(
+      fontFamily: GoogleFonts.beVietnamPro().fontFamily //GoogleFonts.notoEmoji().fontFamily,
+    );
     // Format the timestamp
     final formattedTime = DateFormat('dd MMMM yyyy hh:mm a').format(message.timestamp.toDate());
 
@@ -147,6 +159,7 @@ class _ChatPageState extends State<ChatPage> {
           CustomChatBubble(
             message: message.message,
             isCurrentUser: isCurrentUser,
+            emojiStyle: textStyle,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 25.0),
@@ -161,28 +174,86 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildUserInput() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 30.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: CustomTextField(
-              hintText: "Type a message",
-              obscureText: false,
-              controller: _messagesController,
-              focusNode: focusNode,
+    final textStyle = DefaultEmojiTextStyle.copyWith(
+      fontFamily: GoogleFonts.beVietnamPro().fontFamily //GoogleFonts.notoEmoji().fontFamily,
+    );
+    final screenSize = MediaQuery.of(context).size;
+    const emojiPadding = 9 * 2;
+    final emojiSize = 28 *
+        (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.30 : 1.0);
+    final numEmojiColumns = (screenSize.width / (emojiSize + emojiPadding)).floor();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),  // Adjust bottom padding
+          child: Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(left: 10.0),
+                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                child: IconButton(
+                  onPressed: () => {},  // Add your image upload function here
+                  icon: const Icon(Icons.image, color: Colors.white),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(left: 10.0),
+                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _emojiShowing = !_emojiShowing;
+                      if (_emojiShowing) {
+                        focusNode.unfocus();
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    _emojiShowing
+                        ? Icons.keyboard
+                        : Icons.emoji_emotions_outlined,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: CustomTextField(
+                  hintText: "Type a message",
+                  obscureText: false,
+                  controller: _messagesController,
+                  focusNode: focusNode,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(right: 10),
+                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                child: IconButton(
+                  onPressed: sendMessage,
+                  icon: const Icon(Icons.send, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Offstage(
+          offstage: !_emojiShowing,
+          child: SizedBox(
+            height: 256,
+            child: EmojiPicker(
+              textEditingController: _messagesController,
+              config: Config(
+                emojiTextStyle: textStyle,
+                emojiViewConfig: EmojiViewConfig(
+                  columns: numEmojiColumns,
+                  emojiSizeMax: emojiSize,
+                  backgroundColor: colorScheme.surface,
+                  //loadingIndicator: const SizedBox.shrink(),
+                ),
+              ),
             ),
           ),
-          Container(
-            margin: const EdgeInsets.only(right: 30),
-            decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-            child: IconButton(
-              onPressed: sendMessage,
-              icon: const Icon(Icons.arrow_upward, color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
