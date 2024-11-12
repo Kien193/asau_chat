@@ -26,10 +26,11 @@ class SettingPage extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("DarkMode"),
+            const Text("Light Mode"),
             CupertinoSwitch(
-                value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
-                onChanged: (value) => Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
+              trackColor: Theme.of(context).colorScheme.primary,
+              value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
+              onChanged: (value) => Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
             )
           ],
         ),

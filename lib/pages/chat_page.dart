@@ -21,27 +21,21 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  late final TextEditingController _messagesController;
-  late final ChatService _chatService;
-  late final AuthService _authService;
-  late final FocusNode focusNode;
-  late final ScrollController _scrollController;
+  late final TextEditingController _messagesController = TextEditingController();
+  late final ChatService _chatService = ChatService();
+  late final AuthService _authService = AuthService();
+  late final FocusNode focusNode = FocusNode();
+  late final ScrollController _scrollController = ScrollController();
 
   bool _emojiShowing = false;
+  String? senderID;
 
   @override
   void initState() {
-    _chatService = ChatService();
-    _authService = AuthService();
-    focusNode = FocusNode();
-    _scrollController = ScrollController();
-    _messagesController = TextEditingController();
-
     super.initState();
+    senderID = _authService.getCurrentUser()?.uid;
     focusNode.addListener(() {
-      if (focusNode.hasFocus) {
-        scrollDown();
-      }
+      if (focusNode.hasFocus) scrollDown();
     });
   }
 
@@ -71,8 +65,9 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(widget.receiverEmail),
         backgroundColor: Colors.transparent,
@@ -89,23 +84,19 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageList() {
-    final senderID = _authService.getCurrentUser()!.uid;
     return StreamBuilder<QuerySnapshot>(
-      stream: _chatService.getMessages(widget.receiverID, senderID),
+      stream: _chatService.getMessages(widget.receiverID, senderID ?? ''),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text("Error"));
         }
-
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator()); //const Center(child: Text("Loading..."));
+          return const Center(child: CircularProgressIndicator());
         }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text("No messages yet"));
         }
 
-        // Map each document to a Message object
         final messages = snapshot.data!.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
           return Message(
@@ -122,21 +113,18 @@ class _ChatPageState extends State<ChatPage> {
         return ListView.builder(
           controller: _scrollController,
           itemCount: messages.length,
-          itemBuilder: (context, index) {
-            return _buildMessageItem(messages[index]);
-          },
+          itemBuilder: (context, index) => _buildMessageItem(messages[index]),
         );
       },
     );
   }
 
   Widget _buildMessageItem(Message message) {
-    final isCurrentUser = message.senderID == _authService.getCurrentUser()!.uid;
+    final isCurrentUser = message.senderID == senderID;
     final textStyle = DefaultEmojiTextStyle.copyWith(
-      fontFamily: GoogleFonts.beVietnamPro().fontFamily //GoogleFonts.notoEmoji().fontFamily,
+      fontFamily: GoogleFonts.beVietnamPro().fontFamily,
     );
-    // Format the timestamp
-    final formattedTime = DateFormat('dd MMMM yyyy hh:mm a').format(message.timestamp.toDate());
+    final formattedTime = DateFormat('dd MMM yyyy hh:mm a').format(message.timestamp.toDate());
 
     return Container(
       margin: EdgeInsets.only(
@@ -146,8 +134,7 @@ class _ChatPageState extends State<ChatPage> {
         bottom: 5.0,
       ),
       child: Column(
-        crossAxisAlignment:
-        isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 25.0),
@@ -174,47 +161,28 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildUserInput() {
-    final textStyle = DefaultEmojiTextStyle.copyWith(
-      fontFamily: GoogleFonts.beVietnamPro().fontFamily //GoogleFonts.notoEmoji().fontFamily,
-    );
     final screenSize = MediaQuery.of(context).size;
-    const emojiPadding = 9 * 2;
-    final emojiSize = 28 *
-        (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.30 : 1.0);
-    final numEmojiColumns = (screenSize.width / (emojiSize + emojiPadding)).floor();
-    final colorScheme = Theme.of(context).colorScheme;
+    final textStyle = DefaultEmojiTextStyle.copyWith(
+      fontFamily: GoogleFonts.beVietnamPro().fontFamily,
+    );
+    final emojiSize = 28 * (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.3 : 1.0);
+    final numEmojiColumns = (screenSize.width / (emojiSize + 18)).floor();
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),  // Adjust bottom padding
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Row(
             children: [
-              Container(
-                margin: const EdgeInsets.only(left: 10.0),
-                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                child: IconButton(
-                  onPressed: () => {},  // Add your image upload function here
-                  icon: const Icon(Icons.image, color: Colors.white),
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(left: 10.0),
-                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                child: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _emojiShowing = !_emojiShowing;
-                      if (_emojiShowing) {
-                        focusNode.unfocus();
-                      }
-                    });
-                  },
-                  icon: Icon(
-                    _emojiShowing
-                        ? Icons.keyboard
-                        : Icons.emoji_emotions_outlined,
-                  ),
-                ),
+              _buildIconButton(Icons.image, () {}),
+              _buildIconButton(
+                _emojiShowing ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                    () {
+                  setState(() {
+                    _emojiShowing = !_emojiShowing;
+                    if (_emojiShowing) focusNode.unfocus();
+                  });
+                },
               ),
               Expanded(
                 child: CustomTextField(
@@ -224,20 +192,12 @@ class _ChatPageState extends State<ChatPage> {
                   focusNode: focusNode,
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(right: 10),
-                decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                child: IconButton(
-                  onPressed: sendMessage,
-                  icon: const Icon(Icons.send, color: Colors.white),
-                ),
-              ),
+              _buildIconButton(Icons.send, sendMessage),
             ],
           ),
         ),
-        Offstage(
-          offstage: !_emojiShowing,
-          child: SizedBox(
+        if (_emojiShowing)
+          SizedBox(
             height: 256,
             child: EmojiPicker(
               textEditingController: _messagesController,
@@ -246,14 +206,37 @@ class _ChatPageState extends State<ChatPage> {
                 emojiViewConfig: EmojiViewConfig(
                   columns: numEmojiColumns,
                   emojiSizeMax: emojiSize,
-                  backgroundColor: colorScheme.surface,
-                  //loadingIndicator: const SizedBox.shrink(),
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  noRecents: const Text(
+                    'No Recents',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  loadingIndicator: const SizedBox.shrink(),
+                ),
+                categoryViewConfig: CategoryViewConfig(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  tabIndicatorAnimDuration: const Duration(milliseconds: 500),
+                ),
+                searchViewConfig: SearchViewConfig(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  buttonIconColor: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
           ),
-        ),
       ],
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, VoidCallback onPressed) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10.0),
+      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: Colors.white),
+      ),
     );
   }
 }
