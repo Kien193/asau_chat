@@ -174,13 +174,18 @@ class _ChatPageState extends State<ChatPage> {
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Row(
             children: [
-              _buildIconButton(Icons.image, () {}),
               _buildIconButton(
                 _emojiShowing ? Icons.keyboard : Icons.emoji_emotions_outlined,
                     () {
                   setState(() {
+                    if (_emojiShowing) {
+                      // Close emoji picker and open keyboard
+                      focusNode.requestFocus();
+                    } else {
+                      // Close keyboard and open emoji picker
+                      focusNode.unfocus();
+                    }
                     _emojiShowing = !_emojiShowing;
-                    if (_emojiShowing) focusNode.unfocus();
                   });
                 },
               ),
